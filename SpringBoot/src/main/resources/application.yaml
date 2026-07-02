@@ -1,0 +1,21 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: ${custom.driver}
+    url: ${custom.url}
+    username: ${custom.username}
+    password: ${custom.password}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  #调试时建议打开上面的注释
+  global-config:
+    db-config:
+      id-type: auto
+  type-aliases-package: com.example.pojo
+  mapper-locations: classpath*:/mapper/*.xml
+server:
+  port: 8080

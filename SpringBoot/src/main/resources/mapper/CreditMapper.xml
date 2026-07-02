@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.CreditMapper">
+
+
+<!--    教师端学分管理分页查询语句-->
+    <resultMap id="creditVO" type="creditVO">
+        <result column="student_id" property="studentId"/>
+        <result column="name" property="name" />
+        <result column="clazz" property="clazz" />
+        <result column="sex" property="sex" />
+        <result column="credit" property="credit" />
+        <result column="courseName" property="courseName"/>
+        <result column="course_id" property="courseId"/>
+        <result column="courseStatus" property="courseStatus" />
+    </resultMap>
+    <select id="FindCredit" resultMap="creditVO">
+        SELECT c1.course_id,c2.name as courseName,c1.student_id,s.name ,
+               s.clazz, c1.credit,s.sex,c2.course_statue as courseStatus
+        FROM credit c1
+        LEFT JOIN student s ON c1.student_id = s.student_id
+        LEFT JOIN course c2 ON c1.course_id = c2.id
+        <where>
+            <if test="courseId != null"> AND c1.course_id = #{courseId}</if>
+            <if test="studentId != null"> AND c1.student_id = #{studentId}</if>
+            <if test="courseStatus != null"> AND c2.course_statue = #{courseStatus}</if>
+            AND c2.teacher_id = #{teacherId}
+        </where>
+        ORDER BY c1.course_id DESC
+    </select>
+
+<!--    学生端课程管理分页查询我的课程-->
+    <resultMap id="studentCourseVO" type="StudentCourseVO">
+        <id column="course_id" property="id"/>
+        <result column="credit" property="credit" />
+        <result column="course_name" property="name"/>
+        <result column="course_statue" property="courseStatus" />
+        <result column="description" property="description" />
+        <result column="term_period" property="termPeriod" />
+        <result column="teacher_name" property="teacherName" />
+    </resultMap>
+    <select id="pageFind" resultMap="studentCourseVO">
+        select c1.course_id,
+        c1.credit,c2.name as course_name,
+        c2.course_statue,
+        c2.description,
+        c2.term_period,
+        t.name as teacher_name
+        from credit c1 join course c2 on c1.course_id=c2.id
+        join teacher t on c2.teacher_id=t.teacher_id
+        <where>
+            <if test="courseId != null">
+                and c1.course_id = #{courseId}
+            </if>
+            <if test="courseName != null and courseName != ''">
+                and c2.name like concat('%', #{courseName}, '%')
+            </if>
+            <if test="courseStatus != null and courseStatus != ''">
+                and c2.course_statue = #{courseStatus}
+            </if>
+            and c1.student_id = #{studentId}
+        </where>
+        order by c1.course_id desc
+    </select>
+
+<!--    老师所教课程的学生总数之和-->
+    <select id="findStudentTotal" resultType="Long">
+        select count(*) from credit c2
+        left join course c on c2.course_id=c.id
+        where c.teacher_id=#{teacherId}
+    </select>
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ResourceMapper">
+
+
+    <resultMap id="resourceVO" type="ResourceVO">
+        <id column="id" property="id"/>
+        <result column="name" property="name" />
+        <result column="course_id" property="courseId"/>
+        <result column="courseName" property="courseName"/>
+        <result column="teacher_id" property="teacherId" />
+        <result column="teacherName" property="teacherName"/>
+        <result column="update_time" property="updateTime" />
+        <result column="position" property="position" />
+        <result column="type" property="type" />
+        <result column="picture" property="picture"/>
+        <result column="size" property="size"/>
+        <result column="document_type" property="documentType"/>
+    </resultMap>
+    <select id="pageFindTeacher" resultMap="resourceVO">
+        select r.id,r.name,r.course_id,r.teacher_id,r.update_time,r.position,
+               r.type,r.picture,r.size,r.document_type,c.name as courseName,
+               t.name as teacherName
+            from resource r
+            left join course c on c.id=r.course_id
+            left join teacher t on t.teacher_id=r.teacher_id
+        <where>
+            <if test="id != null">
+                and r.id = #{id}
+            </if>
+            <if test="name != null and name != ''">
+                and r.name like concat('%', #{name}, '%')
+            </if>
+            <if test="courseId != null">
+                and r.course_id = #{courseId}
+            </if>
+            <if test="courseName != null and courseName != ''">
+                and c.name like concat('%', #{courseName}, '%')
+            </if>
+            <if test="type != null">
+                and r.type = #{type}
+            </if>
+            and r.teacher_id = #{teacherId}
+        </where>
+        order by r.update_time desc
+    </select>
+
+    <select id="pageFindStudent" resultMap="resourceVO">
+        select r.id,r.name,r.course_id,r.teacher_id,r.update_time,r.position,
+        r.type,r.picture,r.size,r.document_type,c.name as courseName,
+        t.name as teacherName
+        from resource r
+        left join credit c2 on c2.course_id=r.course_id
+        left join course c on c.id=r.course_id
+        left join teacher t on t.teacher_id=r.teacher_id
+
+        <where>
+            <if test="id != null">
+                and r.id = #{id}
+            </if>
+            <if test="name != null and name != ''">
+                and r.name like concat('%', #{name}, '%')
+            </if>
+            <if test="courseId != null">
+                and r.course_id = #{courseId}
+            </if>
+            <if test="courseName != null and courseName != ''">
+                and c.name like concat('%', #{courseName}, '%')
+            </if>
+            <if test="type != null">
+                and r.type = #{type}
+            </if>
+        and c2.student_id=#{studentId}
+        </where>
+        order by r.update_time desc
+    </select>
+</mapper>

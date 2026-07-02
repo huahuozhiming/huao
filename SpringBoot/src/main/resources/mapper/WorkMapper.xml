@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.WorkMapper">
+    <resultMap id="workVO" type="WorkVO">
+        <id property="id" column="id"/>
+        <result property="name" column="name" />
+        <result property="studentId" column="student_id" />
+        <result property="studentName" column="studentName" />
+        <result property="clazz" column="clazz" />
+        <result property="courseId" column="course_id" />
+        <result property="courseName" column="courseName" />
+        <result property="workStatus" column="work_status" />
+        <result property="score" column="score" />
+        <result property="position" column="position" />
+    </resultMap>
+
+<!--    老师查询学生作业-->
+    <select id="pageFind" resultMap="workVO">
+        select w.id, w.name, w.course_id, c.name as courseName,
+        sc.student_id, s.name as studentName, s.clazz,
+        sc.score, sc.position, sc.work_status
+        from work w
+        join score sc on sc.work_id = w.id
+        <if test="workStatus != null">and sc.work_status = #{workStatus}</if>
+        <if test="studentId != null">and sc.student_id = #{studentId}</if>
+        left join course c on w.course_id = c.id
+        left join student s on sc.student_id = s.student_id
+        <where>
+            <if test="id != null">and w.id = #{id}</if>
+            <if test="name != null and name != ''">and w.name like concat('%', #{name}, '%')</if>
+            <if test="courseId != null">and w.course_id = #{courseId}</if>
+            <if test="teacherId != null">and c.teacher_id = #{teacherId}</if>
+        </where>
+        order by w.id desc
+    </select>
+<!--    老师查询作业-->
+    <select id="searchWork" resultType="teacherWorkVO">
+        select c.id as courseId,c.name as courseName,w.id,w.name
+        from course c
+        right join work w on w.course_id=c.id
+        <where>
+            <if test="id != null">and w.id = #{id}</if>
+            <if test="name != null and name != ''">and w.name like concat('%', #{name}, '%')</if>
+            <if test="courseId != null">and w.course_id = #{courseId}</if>
+            and c.teacher_id=#{teacherId}
+        </where>
+        order by w.id desc
+    </select>
+<!--    查询老师布置全部作业总数-->
+    <select id="workTotal" resultType="Long">
+        select count(*)
+        from course c
+        left join work w on c.id=w.course_id
+        where c.teacher_id=#{teacherId}
+    </select>
+<!--    学生查询作业-->
+    <select id="searchWorkStudent" resultType="studentWorkVO">
+        select w.id,w.name,w.course_id,c.name as courseName,t.name as teacherName
+        from work w
+        left join course c on w.course_id = c.id
+        left join credit c2 on c2.course_id=w.course_id
+        left join teacher t on t.teacher_id=c.teacher_id
+        <where>
+            and c2.student_id=#{studentId}
+            <if test="id!=null">and w.id=#{id}</if>
+            <if test="name!=null and name!=''">and w.name=#{name}</if>
+        <if test="courseId!=null"> and w.course_id=#{courseId}</if>
+        <if test="courseName!=null and courseName!=''">and c.name=#{courseName}</if>
+        </where>
+    </select>
+<!--    学生查询自己的作业-->
+    <select id="findWorkStudent" resultType="studentWorkVO2">
+    select s.work_id as id,w.name,w.course_id,c.name as courseName,
+           t.name as teacherName,s.score,s.work_status
+    from score s
+    left join work w on w.id=s.work_id
+    left join course c on w.course_id=c.id
+    left join teacher t on c.teacher_id=t.teacher_id
+        <where>
+            and s.student_id=#{studentId}
+            <if test="id!=null">and w.id=#{id}</if>
+            <if test="name!=null and name!=''">and w.name=#{name}</if>
+            <if test="courseId!=null"> and w.course_id=#{courseId}</if>
+            <if test="courseName!=null and courseName!=''">and c.name=#{courseName}</if>
+            <if test="workStatus!=null">and s.work_status=#{workStatus}</if>
+        </where>
+    </select>
+
+</mapper>
